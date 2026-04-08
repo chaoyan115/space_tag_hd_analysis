@@ -1,0 +1,14 @@
+# Sample Metadata
+sample: "260128-hd-1"
+spaceranger_id: "27ac_all_sc_20um"
+slide: "H1-7HGFJMJ"
+area: "A1"
+
+# Paths
+fastq_folder: "/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260329_run/trimmed_fastq/27ac"
+cytaimage: "/gpfs/commons/home/cyan/data/7_space_tag_hd/2_images/260128-HD/27ac/CAVG10659R1_2026-01-29_18-52-17_2026-01-29_18-43-39_H1-7HGFJMJ_A1_27ac.tif"
+image: "/gpfs/commons/groups/vickovic_lab/cslater/data/tissueGraph/visium/SpaceTAG/segmentation_masks/CY-260129-space-tag-hd-H3K27ac-2_final.tif"
+transcriptome: "/gpfs/commons/home/cyan/genome/refdata-gex-mm10-2020-A"
+segmentation_file: "/gpfs/commons/groups/vickovic_lab/cslater/data/tissueGraph/visium/SpaceTAG/segmentation_masks/FINAL_mask_STRICT_UINT32.tif"
+# Analysis Parameters
+bin_size: 20

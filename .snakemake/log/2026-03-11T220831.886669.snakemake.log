@@ -1,0 +1,66 @@
+Config file config.yaml is extended by additional config specified via the command line.
+Assuming unrestricted shared filesystem usage.
+host: ne1dc4-006.nygenome.org
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                 count
+----------------  -------
+all                     1
+complexity              1
+convert_bin             1
+convert_to_cells        1
+total                   4
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar 11 22:08:34 2026]
+localrule complexity:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/possorted_genome_bam.bam
+    output: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_complexity.txt
+    jobid: 2
+    reason: Forced execution
+    resources: tmpdir=/scratch
+[Wed Mar 11 22:08:35 2026]
+Finished jobid: 2 (Rule: complexity)
+1 of 4 steps (25%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar 11 22:08:35 2026]
+localrule convert_to_cells:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet
+    output: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz.tbi
+    jobid: 6
+    reason: Missing output files: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+    resources: tmpdir=/scratch
+Output files not touched because they don't exist: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz.tbi, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+[Wed Mar 11 22:08:35 2026]
+Finished jobid: 6 (Rule: convert_to_cells)
+2 of 4 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar 11 22:08:35 2026]
+localrule convert_bin:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet
+    output: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz.tbi
+    jobid: 5
+    reason: Missing output files: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz
+    resources: tmpdir=/scratch
+Output files not touched because they don't exist: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz.tbi
+[Wed Mar 11 22:08:40 2026]
+Finished jobid: 5 (Rule: convert_bin)
+3 of 4 steps (75%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar 11 22:08:40 2026]
+localrule all:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/possorted_genome_bam.bam, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_complexity.txt, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated.bam, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+    jobid: 0
+    reason: Input files updated by another job: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_complexity.txt
+    resources: tmpdir=/scratch
+[Wed Mar 11 22:08:40 2026]
+Finished jobid: 0 (Rule: all)
+4 of 4 steps (100%) done
+Complete log(s): /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/.snakemake/log/2026-03-11T220831.886669.snakemake.log

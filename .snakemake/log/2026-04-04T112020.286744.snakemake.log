@@ -1,0 +1,8 @@
+Config file config.yaml is extended by additional config specified via the command line.
+Assuming unrestricted shared filesystem usage.
+host: ne1dc4-035.nygenome.org
+Building DAG of jobs...
+LockException:
+Error: Directory cannot be locked. Please make sure that no other Snakemake process is trying to create the same files in the following directory:
+/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260329_run/trimmed_fastq/27ac/snake_pipline
+If you are sure that no other instances of snakemake are running on this directory, the remaining lock was likely caused by a kill signal or a power loss. It can be removed with the --unlock argument.

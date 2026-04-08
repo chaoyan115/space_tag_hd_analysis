@@ -1,0 +1,97 @@
+Config file config.yaml is extended by additional config specified via the command line.
+Assuming unrestricted shared filesystem usage.
+host: ne1dc6-008.nygenome.org
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 16
+Rules claiming more threads will be scaled down.
+Job stats:
+job                 count
+----------------  -------
+all                     1
+convert_bin             1
+convert_to_cells        1
+total                   3
+
+Select jobs to execute...
+Execute 2 jobs...
+[Wed Mar 11 22:16:23 2026]
+localrule convert_to_cells:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet
+    output: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz.tbi
+    jobid: 6
+    reason: Missing output files: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+    resources: tmpdir=/scratch
+Shell command: 
+python3 - <<EOF | sort -k1,1 -k2,2n -S 50G --parallel=5 | bgzip -c > /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+import pandas as pd
+import gzip
+import sys
+
+try:
+    # Load mapping but only keep bins that are assigned to a cell
+    mappings = pd.read_parquet("/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet", columns=["square_002um", "cell_id", "in_cell"])
+    mappings = mappings[mappings["in_cell"] == True]
+    
+    # Create the lookup dictionary: { 'square_002um_ID' : 'cellid_N' }
+    translate = dict(zip(mappings["square_002um"], mappings["cell_id"]))
+except Exception as e:
+    sys.stderr.write(f"Error loading parquet: {e}\n")
+    sys.exit(1)
+
+with gzip.open("/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz", 'rt') as f:
+    for line in f:
+        parts = line.strip().split('\t')
+        # parts[3] is the 2um barcode from the BAM
+        if len(parts) >= 4 and parts[3] in translate:
+            parts[3] = translate[parts[3]] # Replace bin ID with Cell ID
+            sys.stdout.write('\t'.join(parts) + '\n')
+EOF
+        tabix -p bed /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+        
+[Wed Mar 11 22:16:23 2026]
+localrule convert_bin:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet
+    output: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz.tbi
+    jobid: 5
+    reason: Missing output files: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz
+    resources: tmpdir=/scratch
+Shell command: 
+python3 - <<EOF | sort -k1,1 -k2,2n -S 50G --parallel=5 | bgzip -c > /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz
+import pandas as pd
+import gzip
+import sys
+try:
+    mappings = pd.read_parquet("/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/barcode_mappings.parquet", columns=["square_002um", "square_020um"])
+    translate = dict(zip(mappings["square_002um"], mappings["square_020um"]))
+except Exception as e:
+    sys.stderr.write(f"Error: {e}\n")
+    sys.exit(1)
+with gzip.open("/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz", 'rt') as f:
+    for line in f:
+        parts = line.strip().split('\t')
+        if len(parts) >= 4 and parts[3] in translate:
+            parts[3] = translate[parts[3]]
+            sys.stdout.write('\t'.join(parts) + '\n')
+EOF
+        tabix -p bed /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz
+        
+[Wed Mar 11 22:20:38 2026]
+Finished jobid: 6 (Rule: convert_to_cells)
+1 of 3 steps (33%) done
+[Wed Mar 11 22:22:46 2026]
+Finished jobid: 5 (Rule: convert_bin)
+2 of 3 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar 11 22:22:46 2026]
+localrule all:
+    input: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/outs/possorted_genome_bam.bam, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_complexity.txt, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated.bam, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments2.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+    jobid: 0
+    reason: Input files updated by another job: /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_020um.bed.gz, /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/27ac_all_sc2_8um_020um/possorted_genome_bam_deduplicated_fragments_CELLS.bed.gz
+    resources: tmpdir=/scratch
+Shell command: None
+[Wed Mar 11 22:22:46 2026]
+Finished jobid: 0 (Rule: all)
+3 of 3 steps (100%) done
+Complete log(s): /gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/.snakemake/log/2026-03-11T221615.824649.snakemake.log
