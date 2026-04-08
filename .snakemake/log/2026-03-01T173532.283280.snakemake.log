@@ -1,4 +1,0 @@
-Config file config.yaml is extended by additional config specified via the command line.
-NameError in file "/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/Snakefile", line 19:
-name 'CELLRANGER_OUTS' is not defined
-  File "/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/Snakefile", line 19, in <module>

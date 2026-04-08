@@ -1,4 +1,0 @@
-SyntaxError in file "/gpfs/commons/home/cyan/scripts/3_space_tag_hd_code/snake_pipline/Snakefile", line 1:
-invalid syntax:
-To do this, we need to adjust the Python logic at the top of your Snakefile so it constructs that specific string (27ac_06x_24um) and uses it consistently for both the Space Ranger --id and the folder path.
-

@@ -1,4 +1,0 @@
-Config file config.yaml is extended by additional config specified via the command line.
-AttributeError in file "/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/Snakefile", line 44:
-'Namedlist' object has no attribute 'bam'
-  File "/gpfs/commons/home/cyan/data/7_space_tag_hd/1_sequencing_runs/260201_run/trimmed_fastq/27ac_all_sc/snake_pipline/Snakefile", line 44, in <module>

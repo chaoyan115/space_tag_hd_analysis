@@ -1,3 +1,6 @@
 logs/
 *.err
 *.out
+.snakemake/
+.RData
+.Rhistory
