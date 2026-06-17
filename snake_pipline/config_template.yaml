@@ -1,0 +1,12 @@
+# SPACE-Tag-HD alignment pipeline config — copy to sample dir and fill in
+sample: ""
+spaceranger_id: ""
+slide: ""
+area: ""
+fastq_folder: ""
+cytaimage: ""
+image: ""
+transcriptome: "/gpfs/commons/home/cyan/genome/refdata-gex-mm10-2020-A"
+segmentation_file: ""   # leave blank until cell seg mask is ready
+run_cells: false
+bin_size: 40
