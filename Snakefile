@@ -13,6 +13,7 @@ SEG_PARAMS = f"--custom-segmentation-file={seg_path} --nucleus-expansion-distanc
 TARGETS = [
     os.path.join(SPACERANGER_OUTS, "outs", "possorted_genome_bam.bam"),
     os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated.bam"),
+    os.path.join(SPACERANGER_OUTS, "markdup_stats.txt"),
     os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated_fragments2.bed.gz"),
     os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated_fragments2.bed.gz.tbi"),
     os.path.join(SPACERANGER_OUTS, f"possorted_genome_bam_deduplicated_fragments_{BIN_STR}.bed.gz"),
@@ -100,13 +101,15 @@ rule complexity:
 # Pipeline: name-sort → fixmate → coord-sort → markdup --barcode-tag CB
 rule deduplicate:
     input:  rules.spaceranger.output.bam
-    output: os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated.bam")
+    output:
+        bam   = os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated.bam"),
+        stats = os.path.join(SPACERANGER_OUTS, "markdup_stats.txt")
     threads: 16
     resources:
         mem_mb = 200000
     shell:
         """
-        TMPDIR=$(dirname {output})
+        TMPDIR=$(dirname {output.bam})
         TMP_NSORT=$TMPDIR/tmp_namesorted.bam
         TMP_FIX=$TMPDIR/tmp_fixmate.bam
         TMP_CSORT=$TMPDIR/tmp_coordsorted.bam
@@ -123,11 +126,11 @@ rule deduplicate:
         rm -f $TMP_FIX
 
         echo "[dedup] Step 4: markdup"
-        samtools markdup -r --barcode-tag CB -@ {threads} $TMP_CSORT {output}
+        samtools markdup -r --barcode-tag CB -f {output.stats} -@ {threads} $TMP_CSORT {output.bam}
         rm -f $TMP_CSORT
 
         echo "[dedup] Indexing"
-        samtools index -@ {threads} {output}
+        samtools index -@ {threads} {output.bam}
         """
 
 
@@ -137,7 +140,7 @@ rule deduplicate:
 #   match(): single regex on the full line is faster than looping fields 12..NF
 #   bgzip -@ : multi-threaded compression
 rule fragments_2um:
-    input:  rules.deduplicate.output
+    input:  rules.deduplicate.output.bam
     output:
         bed = os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated_fragments2.bed.gz"),
         tbi = os.path.join(SPACERANGER_OUTS, "possorted_genome_bam_deduplicated_fragments2.bed.gz.tbi")
