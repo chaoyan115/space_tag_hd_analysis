@@ -9,6 +9,22 @@ SPACERANGER_OUTS = os.path.join(config["fastq_folder"], FULL_ID)
 seg_path  = config.get("segmentation_file")
 SEG_PARAMS = f"--custom-segmentation-file={seg_path} --nucleus-expansion-distance-micron=20" if seg_path else ""
 
+# ── Optional in-pipeline trimming (Illumina now / Ultima option retained) ───────
+# Backward-compatible: configs without these keys default to no-trim, so existing
+# (already-trimmed) Ultima/Illumina sample dirs are unaffected.
+PLATFORM         = config.get("platform", "illumina")
+DO_TRIM          = bool(config.get("trim", False))
+RAW_FASTQ_FOLDER = config.get("raw_fastq_folder", "")
+TRIM_SENTINEL    = os.path.join(config["fastq_folder"], ".trim_complete")
+
+# cutadapt 3' adapters are applied to R2 (genomic read) only; R1 is the spatial barcode.
+# poly-A/T written as literal 9-mers (== cutadapt 'A{9}') to avoid any brace ambiguity in the shell.
+ILLUMINA_ADAPTERS = "-A 'CTGTCTCTTATACACATCT;o=6' -A 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;o=6' -A 'AAAAAAAAA'"
+ULTIMA_ADAPTERS   = "-A 'AGATGTGTATAAGAGACAG;o=6' -A 'ACACTCTTTCCCTACACGACGCTCTTCCGATCT;o=6' -A 'TTTTTTTTT'"
+ADAPTER_ARGS = ULTIMA_ADAPTERS if PLATFORM == "ultima" else ILLUMINA_ADAPTERS
+CUTADAPT = "/gpfs/commons/home/cyan/miniconda3/envs/spatial_multiome/bin/cutadapt"
+FASTQC   = "/gpfs/commons/home/cyan/miniconda3/envs/spatial_multiome/bin/fastqc"
+
 # ── Targets ────────────────────────────────────────────────────────────────────
 TARGETS = [
     os.path.join(SPACERANGER_OUTS, "outs", "possorted_genome_bam.bam"),
@@ -19,6 +35,8 @@ TARGETS = [
     os.path.join(SPACERANGER_OUTS, f"possorted_genome_bam_deduplicated_fragments_{BIN_STR}.bed.gz"),
     os.path.join(SPACERANGER_OUTS, f"possorted_genome_bam_deduplicated_fragments_{BIN_STR}.bed.gz.tbi"),
     os.path.join(SPACERANGER_OUTS, "50M_complexity_curve.txt"),
+    os.path.join(SPACERANGER_OUTS, "qc_fragspot_stats.txt"),
+    os.path.join(SPACERANGER_OUTS, f"qc_fragspot_{BIN_STR}.pdf"),
 ]
 if config.get("run_cells", False):
     TARGETS += [
@@ -30,8 +48,47 @@ rule all:
     input: TARGETS
 
 
+# ── Rule 0: Trim (optional, in-pipeline) ───────────────────────────────────────
+# Runs cutadapt on every raw lane FASTQ of this sample (handles lane-split input),
+# writing trimmed FASTQs into fastq_folder with names preserved so SpaceRanger
+# globs all lanes. Only wired in when config `trim: true`. Adapter set chosen by
+# `platform` (illumina|ultima). Emits a sentinel so downstream rules can depend on it.
+rule trim:
+    output:
+        sentinel = TRIM_SENTINEL
+    threads: 16
+    resources:
+        mem_mb = 32000
+    shell:
+        r"""
+        set -euo pipefail
+        mkdir -p {config[fastq_folder]}
+        cd {RAW_FASTQ_FOLDER}
+        shopt -s nullglob
+        for r1 in {config[sample]}_*_R1_001.fastq.gz; do
+            [[ $r1 == Undetermined* ]] && continue
+            r2="${{r1/_R1_001.fastq.gz/_R2_001.fastq.gz}}"
+            base=$(basename "$r1" _R1_001.fastq.gz)
+            echo "[trim] $base  (platform={PLATFORM})"
+            {CUTADAPT} --cores={threads} \
+                --minimum-length 28:50 \
+                --nextseq-trim=20 \
+                -q 0,15 \
+                {ADAPTER_ARGS} \
+                -o "{config[fastq_folder]}/${{base}}_R1_001.fastq.gz" \
+                -p "{config[fastq_folder]}/${{base}}_R2_001.fastq.gz" \
+                "$r1" "$r2" > "{config[fastq_folder]}/${{base}}_cutadapt.log" 2>&1
+        done
+        mkdir -p {config[fastq_folder]}/fastqc_trimmed
+        {FASTQC} -t {threads} -o {config[fastq_folder]}/fastqc_trimmed {config[fastq_folder]}/*_R[12]_001.fastq.gz || true
+        touch {output.sentinel}
+        """
+
+
 # ── Rule 1: SpaceRanger ────────────────────────────────────────────────────────
 rule spaceranger:
+    input:
+        ([TRIM_SENTINEL] if DO_TRIM else [])
     output:
         bam     = os.path.join(SPACERANGER_OUTS, "outs", "possorted_genome_bam.bam"),
         bai     = os.path.join(SPACERANGER_OUTS, "outs", "possorted_genome_bam.bam.bai"),
@@ -233,4 +290,34 @@ with gzip.open("{input.frag}", "rt") as f:
                 out.write("\\t".join(parts) + "\\n")
 EOF
         tabix -p bed {output.frag_cells}
+        """
+
+
+# ── Rule 7: Fragments-per-spot QC (40 µm) ──────────────────────────────────────
+# Reads the binned fragments + the SpaceRanger tissue_positions.parquet, keeps
+# in_tissue spots, and writes summary stats + a spatial map coloured by fragments
+# per capturing spot. Depends on convert_bin so the SpaceRanger outs (parquet) exist.
+rule qc_fragspot:
+    input:
+        frag = rules.convert_bin.output.frag_bin
+    output:
+        stats = os.path.join(SPACERANGER_OUTS, "qc_fragspot_stats.txt"),
+        pdf   = os.path.join(SPACERANGER_OUTS, f"qc_fragspot_{BIN_STR}.pdf")
+    params:
+        positions = os.path.join(SPACERANGER_OUTS, "outs", "binned_outputs", f"square_{BIN_STR}", "spatial", "tissue_positions.parquet"),
+        outprefix = os.path.join(SPACERANGER_OUTS, f"qc_fragspot_{BIN_STR}"),
+        sample    = config["spaceranger_id"]
+    threads: 4
+    resources:
+        mem_mb = 32000
+    shell:
+        r"""
+        export MAMBA_ROOT_PREFIX=/gpfs/commons/home/cyan/miniconda3
+        /gpfs/commons/home/cyan/.local/bin/micromamba run -n sctm python \
+            /gpfs/commons/home/cyan/data/7_space_tag_hd/pipeline/qc_fragspot.py \
+            --frag {input.frag} \
+            --positions {params.positions} \
+            --outprefix {params.outprefix} \
+            --stats {output.stats} \
+            --sample {params.sample}
         """

@@ -1,12 +1,21 @@
 # SPACE-Tag-HD alignment pipeline config — copy to sample dir and fill in
-sample: ""
-spaceranger_id: ""
+sample: ""             # FASTQ sample prefix (= spaceranger --sample)
+spaceranger_id: ""     # run id / output-dir stem
 slide: ""
 area: ""
-fastq_folder: ""
+
+# --- input FASTQs ---
+fastq_folder: ""       # trimmed FASTQs SpaceRanger reads; the trim rule writes here if trim: true
+
+# --- optional in-pipeline trimming ---
+trim: false            # true = run cutadapt on raw FASTQs before SpaceRanger; false = FASTQs already trimmed
+platform: "illumina"   # illumina | ultima  (selects the cutadapt R2 adapter set; only used when trim: true)
+raw_fastq_folder: ""   # raw (untrimmed) lane FASTQs; required only when trim: true
+
+# --- images / reference ---
 cytaimage: ""
 image: ""
 transcriptome: "/gpfs/commons/home/cyan/genome/refdata-gex-mm10-2020-A"
-segmentation_file: ""   # leave blank until cell seg mask is ready
-run_cells: false
+segmentation_file: ""  # leave blank until cell seg mask is ready
+run_cells: false       # true also emits cell-level fragments (needs a segmentation)
 bin_size: 40
